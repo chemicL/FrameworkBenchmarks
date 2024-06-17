@@ -20,7 +20,9 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <reactor-bom.version>2023.0.7-SNAPSHOT</reactor-bom.version>
+        <reactor-bom.version>2023.0.7</reactor-bom.version>
+<!--        <reactor-bom.version>2024.0.0-SNAPSHOT</reactor-bom.version>-->
+        <spring-framework.version>6.1.9-SNAPSHOT</spring-framework.version>
         <netty.version>4.1.110.Final</netty.version>
         <io_uring.version>0.0.25.Final</io_uring.version>
     </properties>

@@ -14,6 +14,7 @@ public class MyNettyWebServerCustomizer
 	public void customize(NettyReactiveWebServerFactory factory) {
 		factory.addServerCustomizers(httpServer ->
 				httpServer
+//						.wiretap(true) // debugging only
 						.option(ChannelOption.SO_BACKLOG, 8192)
 						.option(ChannelOption.SO_REUSEADDR, true)
 						.option(EpollChannelOption.SO_REUSEPORT, true)
