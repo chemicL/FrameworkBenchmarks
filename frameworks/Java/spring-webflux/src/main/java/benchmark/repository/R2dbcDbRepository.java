@@ -1,10 +1,17 @@
 package benchmark.repository;
 
+import java.util.concurrent.Future;
+import java.util.function.Function;
+
 import benchmark.model.Fortune;
 import benchmark.model.World;
 import org.springframework.context.annotation.Profile;
+import org.springframework.r2dbc.core.DataClassRowMapper;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Component;
+
+import io.r2dbc.spi.Connection;
+import io.r2dbc.spi.Result;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -13,10 +20,19 @@ import reactor.core.publisher.Mono;
 public class R2dbcDbRepository implements DbRepository {
     private final DatabaseClient databaseClient;
 
+    private final ThreadLocal<Mono<? extends Connection>> conn;
+
     public R2dbcDbRepository(DatabaseClient databaseClient) {
         this.databaseClient = databaseClient;
+        this.conn = new ThreadLocal<>();
     }
 
+    private Mono<? extends Connection> getConnection() {
+        if (this.conn.get() == null) {
+            this.conn.set(Mono.from(databaseClient.getConnectionFactory().create()).cache());
+        }
+        return this.conn.get();
+    }
     @Override
     public Mono<World> getWorld(int id) {
         return databaseClient
@@ -46,9 +62,10 @@ public class R2dbcDbRepository implements DbRepository {
 
     @Override
     public Flux<Fortune> fortunes() {
-        return databaseClient
-                .sql("SELECT id, message FROM fortune")
-                .mapProperties(Fortune.class)
-                .all();
+        Flux<? extends Result> results = getConnection()
+                .flatMapMany(conn -> Flux.from(
+                        conn.createStatement("SELECT id, message FROM " + "fortune").execute()));
+        return results
+                .flatMap(result -> result.map(new DataClassRowMapper<>(Fortune.class)));
     }
 }
